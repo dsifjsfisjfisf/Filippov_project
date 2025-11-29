@@ -1,26 +1,19 @@
 #Дано четырехзначное число. Проверить истинность высказывания "Данное число читается одинаково слева направо и справа налево"
 
-a = input("Введите четырехзначное число")
-b = input("Введите то же число справа налево")
-
-while type(a) != int:
+number = int(input("Введите четырехзначное число"))
+while type(number) != int:
     try:
-        a = int(a)
+        number = int(number)
     except ValueError:
         print("Число введено неверно")
-        a = input("Введите четырехзначное число")
+        number = input("Введите четырехзначное число")
 
-while type(b) != int:
-    try:
-        b = int(b)
-    except ValueError:
-        print("Число введено неверно")
-        b = input("Введите то же число справа налево")
+thous = number // 1000
+hundr = (number // 100) % 10
+tens = (number // 10) % 10
+units = number % 10
 
-if str(a)[::-1] == str(b):
-    print("Да, второе число равно первому справа налево")
+if thous == units and hundr == tens:
+    print("число читается одинаково справа налево")
 else:
-    print("Нет, второе число НЕ равно первому справа налево")
-
-if a and b <= 999 or a and b >= 10000:
-    print ("число не четырехзначное!")
+    print("Число не читается справа налево")
