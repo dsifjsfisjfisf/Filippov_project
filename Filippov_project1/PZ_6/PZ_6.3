@@ -1,1 +1,40 @@
+#Дано множество A из N точек (точки заданы координатами x,y). Найти пару различных точек этого множества с максимальным расстоянием между ними и само это расстояние. Точки выводятся в том же порядке, в котором они перечислены при задании множества A.
+def task3():
+    N = int(input("Введите количество точек N: "))
+    
+    if N < 2:
+        print("Недостаточно точек")
+        return
+    
+    x_list = []
+    y_list = []
+    
+    for i in range(N):
+        x = float(input(f"Введите x[{i}]: "))
+        y = float(input(f"Введите y[{i}]: "))
+        x_list.append(x)
+        y_list.append(y)
+    
+    max_distance_squared = 0 
+    point1_index = 0
+    point2_index = 1
+    
+    for i in range(N - 1):
+        for j in range(i + 1, N):
+            dx = x_list[j] - x_list[i]
+            dy = y_list[j] - y_list[i]
+            distance_squared = dx * dx + dy * dy
+            
+            if distance_squared > max_distance_squared:
+                max_distance_squared = distance_squared
+                point1_index = i
+                point2_index = j
+    
+    
+    max_distance = max_distance_squared ** 0.5
+    
+    print(f"\nМаксимальное расстояние: {max_distance}")
+    print(f"Точка 1 (индекс {point1_index}): ({x_list[point1_index]}, {y_list[point1_index]})")
+    print(f"Точка 2 (индекс {point2_index}): ({x_list[point2_index]}, {y_list[point2_index]})")
 
+task3()
