@@ -1,1 +1,23 @@
+#Дан список ненулевых целых чисел размера N. Проверить, образуют ли его элементы геометрическую прогрессию. Если образуют → вывести знаменатель прогрессии, если нет - вывести 0.
+N = int(input("Сколько чисел? N = "))
 
+nums = []
+for i in range(N):
+    num = int(input(f"Число {i+1}: "))
+    if num == 0: 
+        print(0)
+        exit()
+    nums.append(num)
+
+if N < 2:
+    print(0)
+    exit()
+
+q = nums[1] / nums[0]
+
+for i in range(2, N):
+    if nums[i] / nums[i-1] != q:
+        print(0)
+        break
+else:
+    print(q)
