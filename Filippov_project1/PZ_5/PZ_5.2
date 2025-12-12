@@ -1,0 +1,52 @@
+#Задача 2: Функция RectPS(x1, y1, x2, y2, P, S) вычисляет периметр P и площадь S прямоугольника по координатам противоположных вершин.
+
+def RectPS(x1, y1, x2, y2, P, S):
+    if x2 > x1:
+        a = x2 - x1
+    else:
+        a = x1 - x2
+    
+    if y2 > y1:
+        b = y2 - y1
+    else:
+        b = y1 - y2
+    
+    P = 2 * (a + b)
+    S = a * b
+    return P, S
+
+print("Введите координаты первого прямоугольника:")
+x1 = int(input("x1: "))
+y1 = int(input("y1: "))
+x2 = int(input("x2: "))
+y2 = int(input("y2: "))
+
+P = 0
+S = 0
+P, S = RectPS(x1, y1, x2, y2, P, S)
+print(f"Периметр: {P}")
+print(f"Площадь: {S}")
+
+print("\nВведите координаты второго прямоугольника:")
+x1 = int(input("x1: "))
+y1 = int(input("y1: "))
+x2 = int(input("x2: "))
+y2 = int(input("y2: "))
+
+P = 0
+S = 0
+P, S = RectPS(x1, y1, x2, y2, P, S)
+print(f"Периметр: {P}")
+print(f"Площадь: {S}")
+
+print("\nВведите координаты третьего прямоугольника:")
+x1 = int(input("x1: "))
+y1 = int(input("y1: "))
+x2 = int(input("x2: "))
+y2 = int(input("y2: "))
+
+P = 0
+S = 0
+P, S = RectPS(x1, y1, x2, y2, P, S)
+print(f"Периметр: {P}")
+print(f"Площадь: {S}")
