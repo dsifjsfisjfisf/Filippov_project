@@ -1,21 +1,14 @@
-# 1. Даны значения роста 20 юношей. Определить сколько юношей будут направлены в баскетбольную команду (рост от 190) и сколько в футбольную (остальные).
+# 1. Даны значения роста 20 юношей. Определить сколько юношей будут направлены
+# в баскетбольную команду (рост от 190) и сколько в футбольную (остальные).
 
 import random
 
-heights = []
-for i in range(20):
-    height = random.randint(140, 200)
-    heights.append(height)
-    print(f"Рост {i+1}-го юноши: {height}")
+heights = [random.randint(140, 200) for _ in range(20)]
 
-basketball = 0
-football = 0
+print("Рост юношей:", heights)
 
-for h in heights:
-    if h >= 190:
-        basketball += 1
-    else:
-        football += 1
+basketball = len(list(filter(lambda h: h >= 190, heights)))
+football = len(list(filter(lambda h: h < 190, heights)))
 
-print("\nВ баскетбольную команду (рост от 190):", basketball)
+print("В баскетбольную команду (рост от 190):", basketball)
 print("В футбольную команду (остальные):", football)
