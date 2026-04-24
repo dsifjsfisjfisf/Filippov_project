@@ -1,11 +1,16 @@
 # 2. Для каждой строки матрицы с нечетным номером найти среднее арифметическое ее элементов.
 
-matrix = [[3, 5, 7], [2, 4, 8], [6, 1, 9], [5, 3, 2], [8, 2, 6]]
+import random
 
-averages = list(map(lambda row: sum(row) / len(row), [matrix[i] for i in range(len(matrix)) if (i + 1) % 2 != 0]))
+rows = int(input("Введите количество строк: "))
+cols = int(input("Введите количество столбцов: "))
+
+matrix = [[random.randint(-20, 20) for _ in range(cols)] for _ in range(rows)]
 
 print("Матрица:")
-for row in matrix:
-    print(row)
+for i, row in enumerate(matrix):
+    print(f"Строка {i+1}: {row}")
+
+averages = list(map(lambda i: sum(matrix[i]) / len(matrix[i]), filter(lambda i: (i + 1) % 2 != 0, range(len(matrix)))))
 
 print("\nСреднее арифметическое строк с нечетным номером:", averages)
