@@ -1,213 +1,196 @@
 #Приложение выдача кредитов для некоторой организации БД должна содержать таблицу клиент со след структурой записи: ФИО клиента, ФИО сотрудника банка, срок кредита, процент кредита, сумма кредита.
-import sqlite3
+import sqlite3 as sq
+import os
 
-def create_connection():
-    return sqlite3.connect('bank_credits.db')
+DB = "credits.db"
 
-def create_table():
-    with create_connection() as conn:
-        cursor = conn.cursor()
-        cursor.execute('''
-            CREATE TABLE IF NOT EXISTS Клиент (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                фио_клиента TEXT NOT NULL,
-                фио_сотрудника_банка TEXT NOT NULL,
-                срок_кредита INTEGER NOT NULL,
-                процент_кредита REAL NOT NULL,
-                сумма_кредита REAL NOT NULL
-            )
-        ''')
+# Данные для заполнения таблицы
+CREDITS_DATA = [
+    ("Иванов Иван Иванович", "Петров Петр Петрович", 12, 15.5, 500000),
+    ("Сидорова Анна Сергеевна", "Смирнов Алексей Владимирович", 24, 12.0, 1000000),
+    ("Козлов Дмитрий Николаевич", "Иванова Елена Михайловна", 6, 18.5, 300000),
+    ("Морозова Ольга Петровна", "Петров Петр Петрович", 36, 10.0, 2000000),
+    ("Васильев Сергей Андреевич", "Смирнов Алексей Владимирович", 18, 14.0, 750000),
+    ("Новикова Татьяна Павловна", "Иванова Елена Михайловна", 24, 13.5, 850000),
+    ("Федоров Артем Викторович", "Петров Петр Петрович", 12, 16.0, 400000),
+    ("Егорова Мария Владимировна", "Смирнов Алексей Владимирович", 48, 9.5, 3000000),
+    ("Андреев Павел Романович", "Иванова Елена Михайловна", 6, 19.0, 250000),
+    ("Павлова Светлана Максимовна", "Петров Петр Петрович", 30, 11.0, 1500000)
+]
 
-def execute_query(query, params=()):
-    with create_connection() as conn:
-        cursor = conn.cursor()
-        cursor.execute(query, params)
-        return cursor.fetchall()
+def init_db():
+    if os.path.exists(DB):
+        os.remove(DB)
+    with sq.connect(DB) as con:
+        cur = con.cursor()
+        cur.execute("""CREATE TABLE Клиент (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            фио_клиента TEXT NOT NULL,
+            фио_сотрудника_банка TEXT NOT NULL,
+            срок_кредита INTEGER NOT NULL,
+            процент_кредита REAL NOT NULL,
+            сумма_кредита REAL NOT NULL
+        )""")
+        cur.executemany("INSERT INTO Клиент (фио_клиента, фио_сотрудника_банка, срок_кредита, процент_кредита, сумма_кредита) VALUES (?,?,?,?,?)", CREDITS_DATA)
 
-def execute_commit(query, params=()):
-    with create_connection() as conn:
-        cursor = conn.cursor()
-        cursor.execute(query, params)
-        conn.commit()
-        return cursor.rowcount
+def show_all():
+    with sq.connect(DB) as con:
+        for row in con.cursor().execute("SELECT * FROM Клиент"):
+            print(row)
 
-def add_client(client_data):
-    execute_commit('''
-        INSERT INTO Клиент (фио_клиента, фио_сотрудника_банка, срок_кредита, процент_кредита, сумма_кредита)
-        VALUES (?, ?, ?, ?, ?)
-    ''', client_data)
+def search_by_client_name():
+    name = input("Введите ФИО клиента: ")
+    with sq.connect(DB) as con:
+        cur = con.cursor()
+        cur.execute("SELECT * FROM Клиент WHERE фио_клиента LIKE ?", (f"%{name}%",))
+        for row in cur:
+            print(row)
 
-def search_clients(search_by, search_value):
-    queries = {
-        '1': "SELECT * FROM Клиент WHERE фио_клиента LIKE ?",
-        '2': "SELECT * FROM Клиент WHERE фио_сотрудника_банка LIKE ?",
-        '3': "SELECT * FROM Клиент WHERE сумма_кредита > ?"
-    }
-    results = execute_query(queries.get(search_by, "SELECT * FROM Клиент WHERE 1=0"), (f'%{search_value}%',))
-    return results
+def search_by_employee_name():
+    name = input("Введите ФИО сотрудника банка: ")
+    with sq.connect(DB) as con:
+        cur = con.cursor()
+        cur.execute("SELECT * FROM Клиент WHERE фио_сотрудника_банка LIKE ?", (f"%{name}%",))
+        for row in cur:
+            print(row)
 
-def delete_client(delete_by, delete_value):
-    queries = {
-        '1': "DELETE FROM Клиент WHERE id = ?",
-        '2': "DELETE FROM Клиент WHERE фио_клиента = ?",
-        '3': "DELETE FROM Клиент WHERE сумма_кредита < ?"
-    }
-    return execute_commit(queries.get(delete_by, "SELECT 1 WHERE 1=0"), (delete_value,))
-
-def update_client(update_by, update_value, client_id):
-    queries = {
-        '1': "UPDATE Клиент SET срок_кредита = ? WHERE id = ?",
-        '2': "UPDATE Клиент SET процент_кредита = ? WHERE id = ?",
-        '3': "UPDATE Клиент SET сумма_кредита = ? WHERE id = ?"
-    }
-    return execute_commit(queries.get(update_by, "SELECT 1 WHERE 1=0"), (update_value, client_id))
-
-def get_all_clients():
-    return execute_query("SELECT * FROM Клиент")
-
-def init_sample_data():
-    sample_clients = [
-        ('Иванов Иван Иванович', 'Петров Петр Петрович', 12, 15.5, 500000),
-        ('Сидорова Анна Сергеевна', 'Смирнов Алексей Владимирович', 24, 12.0, 1000000),
-        ('Козлов Дмитрий Николаевич', 'Иванова Елена Михайловна', 6, 18.5, 300000),
-        ('Морозова Ольга Петровна', 'Петров Петр Петрович', 36, 10.0, 2000000),
-        ('Васильев Сергей Андреевич', 'Смирнов Алексей Владимирович', 18, 14.0, 750000),
-        ('Новикова Татьяна Павловна', 'Иванова Елена Михайловна', 24, 13.5, 850000),
-        ('Федоров Артем Викторович', 'Петров Петр Петрович', 12, 16.0, 400000),
-        ('Егорова Мария Владимировна', 'Смирнов Алексей Владимирович', 48, 9.5, 3000000),
-        ('Андреев Павел Романович', 'Иванова Елена Михайловна', 6, 19.0, 250000),
-        ('Павлова Светлана Максимовна', 'Петров Петр Петрович', 30, 11.0, 1500000)
-    ]
-    for client in sample_clients:
-        add_client(client)
-
-def display_table():
-    clients = get_all_clients()
-    print("\n" + "-"*80)
-    print(f"{'ID':<3} {'ФИО клиента':<25} {'ФИО сотрудника':<25} {'Срок':<5} {'%':<6} {'Сумма':<10}")
-    print("-"*80)
-    for c in clients:
-        print(f"{c[0]:<3} {c[1]:<25} {c[2]:<25} {c[3]:<5} {c[4]:<6.1f} {c[5]:<10.0f}")
-    print("-"*80)
-
-def safe_int(value):
+def search_by_amount():
     try:
-        return int(value)
+        amount = float(input("Минимальная сумма кредита: "))
+        with sq.connect(DB) as con:
+            cur = con.cursor()
+            cur.execute("SELECT * FROM Клиент WHERE сумма_кредита > ?", (amount,))
+            for row in cur:
+                print(row)
     except ValueError:
-        print("Ошибка: нужно ввести целое число!")
-        return None
+        print("Некорректная сумма.")
 
-def safe_float(value):
+def edit_interest():
     try:
-        return float(value)
+        cid = int(input("ID клиента: "))
+        new_interest = float(input("Новый процент: "))
+        with sq.connect(DB) as con:
+            cur = con.cursor()
+            cur.execute("UPDATE Клиент SET процент_кредита = ? WHERE id = ?", (new_interest, cid))
+            print("Обновлено." if cur.rowcount else "Не найдено.")
     except ValueError:
-        print("Ошибка: нужно ввести число!")
-        return None
+        print("Некорректный ввод.")
+
+def edit_amount():
+    try:
+        cid = int(input("ID клиента: "))
+        new_amount = float(input("Новая сумма: "))
+        with sq.connect(DB) as con:
+            cur = con.cursor()
+            cur.execute("UPDATE Клиент SET сумма_кредита = ? WHERE id = ?", (new_amount, cid))
+            print("Обновлено." if cur.rowcount else "Не найдено.")
+    except ValueError:
+        print("Некорректный ввод.")
+
+def edit_term():
+    try:
+        cid = int(input("ID клиента: "))
+        new_term = int(input("Новый срок (месяцев): "))
+        with sq.connect(DB) as con:
+            cur = con.cursor()
+            cur.execute("UPDATE Клиент SET срок_кредита = ? WHERE id = ?", (new_term, cid))
+            print("Обновлено." if cur.rowcount else "Не найдено.")
+    except ValueError:
+        print("Некорректный ввод.")
+
+def delete_by_id():
+    try:
+        cid = int(input("ID клиента: "))
+        with sq.connect(DB) as con:
+            cur = con.cursor()
+            cur.execute("DELETE FROM Клиент WHERE id = ?", (cid,))
+            print(f"Удалено: {cur.rowcount}")
+    except ValueError:
+        print("Некорректный ID.")
+
+def delete_by_name():
+    name = input("ФИО клиента: ")
+    with sq.connect(DB) as con:
+        cur = con.cursor()
+        cur.execute("DELETE FROM Клиент WHERE фио_клиента = ?", (name,))
+        print(f"Удалено: {cur.rowcount}")
+
+def delete_by_amount():
+    try:
+        amount = float(input("Удалить клиентов с суммой меньше: "))
+        with sq.connect(DB) as con:
+            cur = con.cursor()
+            cur.execute("DELETE FROM Клиент WHERE сумма_кредита < ?", (amount,))
+            print(f"Удалено: {cur.rowcount}")
+    except ValueError:
+        print("Некорректная сумма.")
+
+def add_client():
+    try:
+        name = input("ФИО клиента: ")
+        employee = input("ФИО сотрудника: ")
+        term = int(input("Срок (месяцев): "))
+        interest = float(input("Процент: "))
+        amount = float(input("Сумма: "))
+        with sq.connect(DB) as con:
+            cur = con.cursor()
+            cur.execute("INSERT INTO Клиент (фио_клиента, фио_сотрудника_банка, срок_кредита, процент_кредита, сумма_кредита) VALUES (?,?,?,?,?)",
+                        (name, employee, term, interest, amount))
+            print("Клиент добавлен.")
+    except ValueError:
+        print("Некорректный ввод.")
 
 def main():
-    create_table()
-    
-    if len(get_all_clients()) == 0:
-        init_sample_data()
-    
+    if not os.path.exists(DB):
+        init_db()
+        print("База данных создана и заполнена.")
+    else:
+        print("База данных уже существует.")
+
     while True:
-        print("\n" + "="*60)
-        print("БАНКОВСКАЯ СИСТЕМА - ВЫДАЧА КРЕДИТОВ")
-        print("="*60)
+        print("\n" + "="*50)
+        print("ПРИЛОЖЕНИЕ ВЫДАЧА КРЕДИТОВ")
+        print("="*50)
         print("1. Показать всех клиентов")
-        print("2. Добавить нового клиента")
-        print("3. Поиск клиентов")
-        print("4. Удалить клиента")
-        print("5. Редактировать данные клиента")
-        print("6. Выход")
-        
+        print("2. Поиск по ФИО клиента")
+        print("3. Поиск по ФИО сотрудника")
+        print("4. Поиск по минимальной сумме")
+        print("5. Редактировать процент (по ID)")
+        print("6. Редактировать сумму (по ID)")
+        print("7. Редактировать срок (по ID)")
+        print("8. Удалить по ID")
+        print("9. Удалить по ФИО")
+        print("10. Удалить по сумме меньше")
+        print("11. Добавить клиента")
+        print("0. Выход")
+
         choice = input("\nВыберите действие: ")
-        
+
         if choice == '1':
-            display_table()
-        
+            show_all()
         elif choice == '2':
-            fio_client = input("ФИО клиента: ")
-            fio_employee = input("ФИО сотрудника банка: ")
-            
-            term = None
-            while term is None:
-                term = safe_int(input("Срок кредита (месяцев): "))
-            
-            percent = None
-            while percent is None:
-                percent = safe_float(input("Процент кредита: "))
-            
-            amount = None
-            while amount is None:
-                amount = safe_float(input("Сумма кредита: "))
-            
-            add_client((fio_client, fio_employee, term, percent, amount))
-            print("Клиент добавлен!")
-        
+            search_by_client_name()
         elif choice == '3':
-            print("\nИскать по:")
-            print("1. ФИО клиента")
-            print("2. ФИО сотрудника")
-            print("3. Сумма кредита больше")
-            search_choice = input("Выберите вариант: ")
-            search_value = input("Введите значение: ")
-            results = search_clients(search_choice, search_value)
-            if results:
-                print("\nНайденные клиенты:")
-                for c in results:
-                    print(f"ID: {c[0]}, {c[1]}, Сотрудник: {c[2]}, Срок: {c[3]}, %: {c[4]}, Сумма: {c[5]}")
-            else:
-                print("Ничего не найдено")
-        
+            search_by_employee_name()
         elif choice == '4':
-            print("\nУдалить по:")
-            print("1. ID")
-            print("2. ФИО клиента")
-            print("3. Сумма кредита меньше")
-            delete_choice = input("Выберите вариант: ")
-            delete_value = input("Введите значение: ")
-            
-            if delete_choice == '1':
-                delete_value = safe_int(delete_value)
-                if delete_value is None:
-                    continue
-            elif delete_choice == '3':
-                delete_value = safe_float(delete_value)
-                if delete_value is None:
-                    continue
-            
-            deleted = delete_client(delete_choice, delete_value)
-            print(f"Удалено записей: {deleted}")
-        
+            search_by_amount()
         elif choice == '5':
-            display_table()
-            client_id = safe_int(input("Введите ID клиента для редактирования: "))
-            if client_id is None:
-                continue
-            
-            print("\nЧто редактировать?")
-            print("1. Срок кредита")
-            print("2. Процент кредита")
-            print("3. Сумму кредита")
-            update_choice = input("Выберите вариант: ")
-            
-            new_value = None
-            if update_choice == '1':
-                new_value = safe_int(input("Новый срок кредита: "))
-            elif update_choice == '2':
-                new_value = safe_float(input("Новый процент: "))
-            elif update_choice == '3':
-                new_value = safe_float(input("Новая сумма: "))
-            
-            if new_value is not None:
-                updated = update_client(update_choice, new_value, client_id)
-                print(f"Обновлено записей: {updated}")
-        
+            edit_interest()
         elif choice == '6':
+            edit_amount()
+        elif choice == '7':
+            edit_term()
+        elif choice == '8':
+            delete_by_id()
+        elif choice == '9':
+            delete_by_name()
+        elif choice == '10':
+            delete_by_amount()
+        elif choice == '11':
+            add_client()
+        elif choice == '0':
             print("До свидания!")
             break
-        
         else:
             print("Неверный выбор!")
 
